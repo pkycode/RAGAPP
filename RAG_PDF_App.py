@@ -10,11 +10,34 @@ import uuid
 import re
 from datetime import datetime
 from dotenv import load_dotenv
+from pymongo import MongoClient
 
 # Load environment variables from .env file
 load_dotenv()
 # Get API key from environment variables
 os.environ["OPENAI_API_KEY"] = os.getenv("API_KEY")
+
+# MongoDB setup - Using environment variables
+def get_database():
+    try:
+        # Get MongoDB connection string directly from .env file
+        mongo_uri = os.getenv("MONGODB_URI")
+        
+        if not mongo_uri:
+            st.error("Missing MongoDB URI in environment variables")
+            return None
+            
+        client = MongoClient(mongo_uri)
+        # Test the connection
+        client.server_info()  # This will raise an exception if connection fails
+        return client.rag_app_db  # database name
+    except Exception as e:
+        st.error(f"Failed to connect to database: {str(e)}")
+        return None
+        return client.rag_app_db  # database name
+    except Exception as e:
+        st.error(f"Failed to connect to database: {str(e)}")
+        return None
 
 def validate_email(email):
     """Validate email format using regex"""
@@ -22,10 +45,23 @@ def validate_email(email):
     return re.match(pattern, email) is not None
 
 def log_email(email):
-    """Log email with timestamp to a file"""
-    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    with open("user_emails.txt", "a") as f:
-        f.write(f"{timestamp} - {email}\n")
+    """Log email with timestamp to MongoDB"""
+    try:
+        db = get_database()
+        if db is not None:  # Proper way to check if database connection exists
+            user_collection = db.users
+            timestamp = datetime.now()
+            result = user_collection.insert_one({
+                "email": email,
+                "timestamp": timestamp
+            })
+            # Check if insertion was successful
+            if result.inserted_id:
+                return True
+        return False
+    except Exception as e:
+        st.error(f"Failed to log email: {str(e)}")
+        return False
 
 class RAGApplication:
     def __init__(self):
@@ -121,10 +157,12 @@ def main():
         
         if st.button("Submit Email"):
             if validate_email(email):
-                log_email(email)
-                st.session_state.email_verified = True
-                st.success("Email verified successfully!")
-                st.rerun()
+                if log_email(email):
+                    st.session_state.email_verified = True
+                    st.success("Email verified successfully!")
+                    st.rerun()
+                else:
+                    st.error("Failed to save email. Please try again.")
             else:
                 st.error("Please enter a valid email address")
         return
