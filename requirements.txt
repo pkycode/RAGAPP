@@ -6,3 +6,4 @@ openai>=1.6.1
 faiss-cpu>=1.7.4
 python-dotenv>=1.0.0
 pypdf>=3.17.1
+pymongo
