@@ -1,0 +1,47 @@
+%%{init: {'theme': 'base', 'themeVariables': { 'background': '#FFFFFF', 'textColor': '#000000', 'fontSize': '16px', 'fontFamily': 'arial', 'mainBkg': '#FFFFFF', 'lineColor': '#000000', 'clusterBkg': '#FFFFFF', 'primaryBorderColor': '#000000', 'nodeBorder': '#000000'}}}%%
+flowchart TD
+    Start([User Lands on App])
+    Email{Email Verification}
+    InputEmail[Enter Email]
+    ValidateEmail{Validate Email}
+    StoreEmail[Store in MongoDB]
+    Upload[Upload PDF Interface]
+    Process[Process PDF]
+    Split[Split into Chunks]
+    Embed[Create Embeddings]
+    Store[(Store in FAISS)]
+    Ready[Ready for Questions]
+    Question[User Asks Question]
+    QueryEmbed[Create Query Embedding]
+    Search[Search Similar Chunks]
+    Retrieve[Retrieve Context]
+    Generate[Generate Answer with GPT-4]
+    Display[Display Answer to User]
+
+    Start --> Email
+    Email -->|Not Verified| InputEmail
+    InputEmail --> ValidateEmail
+    ValidateEmail -->|Invalid| InputEmail
+    ValidateEmail -->|Valid| StoreEmail
+    StoreEmail --> Upload
+    Email -->|Verified| Upload
+    Upload --> Process
+    Process --> Split
+    Split --> Embed
+    Embed --> Store
+    Store --> Ready
+    Ready --> Question
+    Question --> QueryEmbed
+    QueryEmbed --> Search
+    Search --> Retrieve
+    Retrieve --> Generate
+    Generate --> Display
+
+    classDef default fill:#FFFFFF,stroke:#000000,stroke-width:2px,padding:10px,font-size:16px
+    classDef start fill:#FFFFFF,stroke:#000000,stroke-width:3px,padding:15px
+    classDef storage fill:#FFFFFF,stroke:#000000,stroke-dasharray:5 5
+    classDef condition fill:#FFFFFF,stroke:#000000,stroke-width:2px
+    
+    class Start start
+    class Store storage
+    class Email,ValidateEmail condition
