@@ -1,0 +1,65 @@
+%%{init: {'theme': 'base', 'themeVariables': { 'background': '#FFFFFF', 'textColor': '#000000', 'fontSize': '14px', 'fontFamily': 'arial', 'mainBkg': '#FFFFFF', 'lineColor': '#000000', 'clusterBkg': '#FFFFFF', 'primaryBorderColor': '#000000', 'nodeBorder': '#000000'}}}%%
+flowchart TD
+    subgraph Client["Client Layer"]
+        UI[/"Streamlit UI"/]
+        UP["PDF Upload"]
+        QI["Query Interface"]
+        EM["Email Management"]
+    end
+    subgraph Security["Security Layer"]
+        Auth["Authentication"]
+        VS["Validation Service"]
+        SS["Session Store"]
+    end
+    subgraph Processing["Processing Layer"]
+        PC["PDF Converter"]
+        TS["Text Splitter"]
+        VE["Vector Embeddings"]
+    end
+    subgraph RAG["RAG Engine"]
+        QP["Query Processor"]
+        CR["Context Retriever"]
+        AG["Answer Generator"]
+    end
+    subgraph Storage["Storage Layer"]
+        DB[(MongoDB)]
+        VS_FAISS[(FAISS Vector Store)]
+    end
+    subgraph AI["AI Services"]
+        GPT["OpenAI GPT-4"]
+        EMB["OpenAI Embeddings"]
+    end
+    
+    %% Connections
+    UI --> UP
+    UI --> QI
+    UI --> EM
+    EM --> Auth
+    UP --> VS
+    Auth --> SS
+    UP --> PC
+    PC --> TS
+    TS --> VE
+    QI --> QP
+    QP --> CR
+    CR --> AG
+    VE --> VS_FAISS
+    Auth --> DB
+    CR --> VS_FAISS
+    VE --> EMB
+    AG --> GPT
+
+    classDef default fill:#FFFFFF,stroke:#000000,color:#000000,background:#FFFFFF
+    classDef client fill:#FFFFFF,stroke:#000000,color:#000000,background:#FFFFFF
+    classDef security fill:#FFFFFF,stroke:#000000,color:#000000,background:#FFFFFF
+    classDef processing fill:#FFFFFF,stroke:#000000,color:#000000,background:#FFFFFF
+    classDef rag fill:#FFFFFF,stroke:#000000,color:#000000,background:#FFFFFF
+    classDef storage fill:#FFFFFF,stroke:#000000,color:#000000,background:#FFFFFF
+    classDef ai fill:#FFFFFF,stroke:#000000,color:#000000,background:#FFFFFF
+    
+    class UI,UP,QI,EM client
+    class Auth,VS,SS security
+    class PC,TS,VE processing
+    class QP,CR,AG rag
+    class DB,VS_FAISS storage
+    class GPT,EMB ai
