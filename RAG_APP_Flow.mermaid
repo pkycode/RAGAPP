@@ -20,11 +20,11 @@ flowchart TD
 
     Start --> Email
     Email -->|Not Verified| InputEmail
+    Email -->|Verified| StoreEmail
     InputEmail --> ValidateEmail
     ValidateEmail -->|Invalid| InputEmail
     ValidateEmail -->|Valid| StoreEmail
     StoreEmail --> Upload
-    Email -->|Verified| Upload
     Upload --> Process
     Process --> Split
     Split --> Embed
