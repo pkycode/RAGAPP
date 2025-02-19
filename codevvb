@@ -1,0 +1,145 @@
+Updated code with formatting:
+
+Sub SortBufferCalculations()
+    On Error Resume Next
+   
+    Dim ws As Worksheet
+    Dim wsOutput As Worksheet
+    Dim lastRow As Long, lastCol As Long
+    Dim i As Long, j As Long, outputRow As Long
+    Dim dict As Object
+    Dim tempDict As Object
+    Dim key As Variant
+    Dim shortName As String
+    Dim headerRow As Long
+    Dim dataFound As Boolean
+   
+    ' Set the worksheets
+    Set ws = ThisWorkbook.Sheets("Summary_Email")
+    If ws Is Nothing Then
+        MsgBox "Sheet1 not found!", vbExclamation
+        Exit Sub
+    End If
+   
+    ' Check if Sorted worksheet exists, if not create it
+    Set wsOutput = Nothing
+    If outputRow > 2 Then
+        With wsOutput.Sort
+            .SortFields.Clear
+            .SortFields.Add key:=wsOutput.Range(wsOutput.Cells(2, 11), _
+                                               wsOutput.Cells(outputRow - 1, 11)), _
+                            SortOn:=xlSortOnValues, _
+                            Order:=xlAscending, _
+                            DataOption:=xlSortNormal
+            .SetRange wsOutput.Range(wsOutput.Cells(2, 1), wsOutput.Cells(outputRow - 1, lastCol))
+            .Header = xlNo
+            .MatchCase = False
+            .Orientation = xlTopToBottom
+            .SortMethod = xlPinYin
+            .Apply
+        End With
+       
+        ' Format header row
+        With wsOutput.Range(wsOutput.Cells(1, 1), wsOutput.Cells(1, lastCol))
+            .Interior.Color = RGB(211, 211, 211)  ' #D3D3D3
+            .Font.Color = RGB(0, 0, 0)  ' Black
+            .Font.Bold = True
+            .HorizontalAlignment = xlCenter
+        End With
+       
+        ' Format data rows
+        Dim dataRow As Long
+        For dataRow = 2 To outputRow - 1
+            ' Clear any existing formatting
+            wsOutput.Range(wsOutput.Cells(dataRow, 1), wsOutput.Cells(dataRow, lastCol)).Interior.ColorIndex = xlNone
+           
+            ' Apply alternating row colors
+            If dataRow Mod 2 = 0 Then
+                wsOutput.Range(wsOutput.Cells(dataRow, 1), wsOutput.Cells(dataRow, lastCol)).Interior.Color = RGB(160, 217, 239) ' #a0d9ef
+            Else
+                wsOutput.Range(wsOutput.Cells(dataRow, 1), wsOutput.Cells(dataRow, lastCol)).Interior.Color = RGB(255, 255, 255) ' white
+            End If
+           
+            ' Format Excess/Shortfall column for positive values
+            If IsNumeric(wsOutput.Cells(dataRow, lastCol).Value) Then
+                If wsOutput.Cells(dataRow, lastCol).Value > 0 Then
+                    wsOutput.Cells(dataRow, lastCol).Interior.Color = RGB(152, 251, 152) ' #98FB98
+                    wsOutput.Cells(dataRow, lastCol).Font.Color = RGB(0, 100, 0) ' Dark green
+                End If
+            End If
+        Next dataRow
+       
+        ' Add thick border around the table
+        With wsOutput.Range(wsOutput.Cells(1, 1), wsOutput.Cells(outputRow - 1, lastCol))
+            .Borders(xlEdgeLeft).Weight = xlThick
+            .Borders(xlEdgeTop).Weight = xlThick
+            .Borders(xlEdgeBottom).Weight = xlThick
+            .Borders(xlEdgeRight).Weight = xlThick
+        End With
+    End If
+   
+    ' Autofit columns
+    wsOutput.Columns.AutoFit
+   
+    ' Clean up
+    Set dict = Nothing
+    Set tempDict = Nothing
+   
+    MsgBox "Processing complete. Results are in the 'Sorted' worksheet.", vbInformation
+
+End Sub
+
+
+
+
+
+Code for Screenshot
+
+Sub TakeScreenshotAndInsert()
+    Dim ws As Worksheet
+    Dim newSheet As Worksheet
+    Dim rng As Range
+    Dim pic As Picture
+    Dim dateTimeStr As String
+    Dim sheetName As String
+   
+    ' Ensure "Sorted" sheet exists
+    On Error Resume Next
+    Set ws = ThisWorkbook.Sheets("Sorted")
+    On Error GoTo 0
+   
+    If ws Is Nothing Then
+        MsgBox "Sheet 'Sorted' not found!", vbExclamation, "Error"
+        Exit Sub
+    End If
+   
+    ' Set range to capture (A1:L33)
+    Set rng = ws.Range("A1:L33")
+   
+    ' Copy the range as a picture
+    rng.CopyPicture Appearance:=xlScreen, Format:=xlPicture
+   
+    ' Create new sheet with name format "zScreenshot_DDMMYYYY_HHMMSS"
+    dateTimeStr = Format(Now, "DDMMYYYY_HHMMSS")
+    sheetName = "zScreenshot_" & dateTimeStr
+   
+    ' Ensure sheet name does not exceed 31 characters (Excel limit)
+    If Len(sheetName) > 31 Then sheetName = Left(sheetName, 31)
+   
+    ' Create new sheet immediately after "Sorted"
+    Set newSheet = ThisWorkbook.Sheets.Add(After:=ws)
+    newSheet.Name = sheetName
+   
+    ' Paste the picture into the new sheet
+    newSheet.Range("A1").Select
+    newSheet.Paste
+   
+    ' Adjust picture position
+    Set pic = newSheet.Pictures(newSheet.Pictures.Count)
+    pic.Top = newSheet.Range("A1").Top
+    pic.Left = newSheet.Range("A1").Left
+
+    ' Clean up
+    Application.CutCopyMode = False
+    MsgBox "Screenshot captured and saved in new sheet: " & sheetName, vbInformation, "Success"
+End Sub
